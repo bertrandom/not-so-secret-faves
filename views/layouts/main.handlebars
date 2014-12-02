@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Not so secret faves</title>
+    <style>
+		
+		* {
+			margin: 0;
+			padding: 0;
+		}
+
+		body {
+			background: #000000;
+		}
+
+    </style>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+</head>
+<body>
+
+    {{{body}}}
+
+    <script>
+		(function ($) {
+
+			$.fn.photoResize = function (options) {
+
+				var element	= $(this), 
+					defaults = {
+			            bottomSpacing: 10
+					};
+				
+				$(element).load(function () {
+					updatePhotoHeight();
+
+					$(window).bind('resize', function () {
+						updatePhotoHeight();
+					});
+				});
+
+				options = $.extend(defaults, options);
+
+				function updatePhotoHeight() {
+					var o = options, 
+						photoHeight = $(window).height();
+
+					$(element).attr('height', photoHeight - o.bottomSpacing);
+				}
+			};
+
+		}(jQuery));    
+    </script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+
+	  	var socket = io();
+
+	  	var el = $('#fave');
+	  	var queue = el.queue();
+
+		socket.on('fave', function(msg) {
+
+			var fave = JSON.parse(msg);
+			queue.push(function(){
+
+				$('#fave').fadeOut(500, function() {
+
+					$('#fave').html(
+						'<img style="position:absolute; top: 15px; left: 15px;" src="' + fave.buddyIconUrl + '" width="110" height="110" /><img class="photo" src="' + fave.photoFarmUrl + '" />'
+					);
+					$("img.photo").photoResize({
+						bottomSpacing: 0
+					});
+					$('#fave').fadeIn(500);
+
+				});
+
+			});
+
+		});
+
+		setInterval(function() {
+
+			var action = queue.pop();
+			if (action) {
+				action();
+			}
+
+		}, 10000);
+
+	</script>
+
+</body>
+</html>
